@@ -1,6 +1,9 @@
 use rocket::State;
 
-use crate::{datastructures::image::Image, errors::Errors, state::serverstate::ServerState};
+use crate::{
+    datastructures::image::Image, errors::Errors, imagelib::image_response::ImageResponse,
+    state::serverstate::ServerState,
+};
 
 macro_rules! image_route {
     ($path: literal, $name: ident, $method: ident, mutable $(,$args: expr)*) => {
@@ -8,12 +11,10 @@ macro_rules! image_route {
         pub async fn $name(
             image: Image<'_>,
             server_state: &State<&ServerState>,
-        ) -> Result<Vec<u8>, Errors> {
-            let mut bytes: Vec<u8> = Vec::new();
+        ) -> Result<ImageResponse, Errors> {
             let mut image = image?.to_image(256, &server_state).await?;
             image.$method($(server_state.config.$args,)*);
-            image.write_to(&mut bytes, image::ImageOutputFormat::Png)?;
-            Ok(bytes)
+            ImageResponse(image).ok()
         }
     };
 
@@ -22,14 +23,12 @@ macro_rules! image_route {
         pub async fn $name(
             image: Image<'_>,
             server_state: &State<&ServerState>,
-        ) -> Result<Vec<u8>, Errors> {
-            let mut bytes: Vec<u8> = Vec::new();
-            image?
+        ) -> Result<ImageResponse, Errors> {
+            ImageResponse(image?
                 .to_image(256, &server_state)
                 .await?
-                .$method($(server_state.config.$args,)*)
-                .write_to(&mut bytes, image::ImageOutputFormat::Png)?;
-            Ok(bytes)
+                .$method($(server_state.config.$args,)*))
+                .ok()
         }
     };
 }
