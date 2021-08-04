@@ -3,8 +3,9 @@ use std::io::Cursor;
 use image::{imageops::FilterType, io::Reader, DynamicImage, GenericImageView};
 use rocket::serde::json::{Error as JsonError, Json};
 use serde::Deserialize;
+use tokio::task::spawn_blocking;
 
-use crate::{errors::Errors, state::serverstate::ServerState};
+use crate::{errors::Errors, imagelib::fillcolor::fill_color, state::serverstate::ServerState};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -123,19 +124,31 @@ impl ImageJson {
 
     pub async fn to_image(&self, size: u32, state: &ServerState) -> Result<DynamicImage, Errors> {
         let mut image = match self {
-            Self::Color(..) => todo!(),
-            /*
             Self::Color(r, g, b) => {
                 let size = if size == 0 { 1024 } else { size };
-                DynamicImage::ImageRgb8(fill_color([*r, *g, *b], (size, size)))
+                let (r, g, b) = (*r, *g, *b);
+                spawn_blocking(move || DynamicImage::ImageRgb8(fill_color([r, g, b], (size, size))))
+                    .await
+                    .unwrap()
             }
-            */
-            _ => Reader::new(Cursor::new(&self.to_vec(size, state).await?))
-                .with_guessed_format()?
-                .decode()?,
+
+            _ => {
+                let bytes = self.to_vec(size, state).await?;
+
+                spawn_blocking(move || {
+                    let reader = Reader::new(Cursor::new(&bytes));
+                    reader.with_guessed_format()?.decode()
+                })
+                .await
+                .unwrap()?
+            }
         };
+
+        // Resize if required
         if size != 0 && (image.width() != size || image.height() != size) {
-            image = image.resize(size, size, FilterType::Nearest);
+            image = spawn_blocking(move || image.resize(size, size, FilterType::Nearest))
+                .await
+                .unwrap();
         }
 
         Ok(image)
