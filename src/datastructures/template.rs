@@ -10,7 +10,9 @@ use crate::{errors::Errors, state::serverstate::ServerState};
 
 #[derive(Deserialize)]
 pub struct TemplateInputJson {
+    #[serde(default = "Vec::new")]
     pub texts: Vec<String>,
+    #[serde(default = "Vec::new")]
     pub images: Vec<ImageJson>,
 }
 
@@ -40,10 +42,11 @@ impl Overlay {
 #[derive(Deserialize)]
 pub struct DrawText {
     coords: (u32, u32),
+    #[serde(default = "default_value::color_4")]
     color: [u8; 4],
     scale: (f32, f32),
     max_width: usize,
-    font: String,
+    font: Option<String>,
 }
 
 impl DrawText {
@@ -57,7 +60,9 @@ impl DrawText {
         crate::imagelib::drawtext::draw_text(
             &mut image,
             Rgba(self.color),
-            &*(state.cache.get_font(&self.font)?),
+            &*(state
+                .cache
+                .get_font(self.font.as_ref().unwrap_or(&state.config.default_font))?),
             &text,
             rusttype::Scale {
                 x: self.scale.0,
@@ -70,6 +75,7 @@ impl DrawText {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Operation {
     DrawText(DrawText),
     Overlay(Overlay),
@@ -157,3 +163,9 @@ impl Template {
 }
 
 pub type TemplateInput<'a> = Result<Json<TemplateInputJson>, JsonError<'a>>;
+
+mod default_value {
+    pub fn color_4() -> [u8; 4] {
+        [0; 4]
+    }
+}

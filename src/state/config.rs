@@ -9,6 +9,8 @@ use crate::{datastructures::template::Template, errors::Errors};
 #[derive(Deserialize)]
 pub struct ServerConfig {
     pub templates: Vec<Template>,
+
+    pub default_font: String,
     pub textdraw_text_max_len: usize,
     pub blur_sigma: f32,
     pub colorfill_image_size: u32,
