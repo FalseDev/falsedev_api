@@ -7,6 +7,7 @@ lazy_static::lazy_static! {
 }
 
 fn create_server() -> rocket::Rocket<rocket::Build> {
+    let state: &ServerState = &STATE;
     rocket::build()
         .mount(
             "/",
@@ -16,7 +17,7 @@ fn create_server() -> rocket::Rocket<rocket::Build> {
             "/template",
             routes![crate::routes::image::templates::template],
         )
-        .manage(&STATE)
+        .manage(state)
         .attach(RequestTimer)
 }
 
