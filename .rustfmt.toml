@@ -1,0 +1,8 @@
+reorder_imports = true
+group_imports = "StdExternalCrate"
+imports_granularity = "Crate"
+
+reorder_modules = true
+
+blank_lines_lower_bound = 0
+blank_lines_upper_bound = 1
