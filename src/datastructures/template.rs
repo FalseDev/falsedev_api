@@ -127,6 +127,33 @@ impl Template {
         .await
         .unwrap()
     }
+
+    pub fn validate(&self, input: &TemplateInputJson) -> Result<(), Errors> {
+        let expected = self
+            .operations
+            .iter()
+            .filter(|o| matches!(o, Operation::Overlay(..)))
+            .count();
+        if input.images.len() != expected {
+            return Err(Errors::InvalidInput(format!(
+                "Invalid number of images, expected {}",
+                expected
+            )));
+        }
+
+        let expected = self
+            .operations
+            .iter()
+            .filter(|o| matches!(o, Operation::DrawText(..)))
+            .count();
+        if input.texts.len() != expected {
+            return Err(Errors::InvalidInput(format!(
+                "Invalid number of texts, expected {}",
+                expected
+            )));
+        }
+        Ok(())
+    }
 }
 
 pub type TemplateInput<'a> = Result<Json<TemplateInputJson>, JsonError<'a>>;

@@ -10,12 +10,12 @@ pub async fn template(
     server_state: &State<&'static ServerState>,
     template_input: TemplateInput<'_>,
 ) -> Result<Vec<u8>, Errors> {
+    let template_input = template_input?.into_inner();
+    let template = server_state.config.get_template(name)?;
+    template.validate(&template_input)?;
+    let image = template.process(server_state, template_input).await?;
+
     let mut bytes: Vec<u8> = Vec::new();
-    let image = server_state
-        .config
-        .get_template(name)?
-        .process(server_state, template_input?.into_inner())
-        .await?;
     image.write_to(&mut bytes, image::ImageOutputFormat::Png)?;
     Ok(bytes)
 }
