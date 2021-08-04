@@ -116,7 +116,7 @@ impl ImageJson {
                 if !state.allow_local_file_input {
                     return Err(Errors::InvalidInput("Local file input is disabled.".into()));
                 }
-                state.cache.get_image(filename)
+                state.cache.get_image(filename).await.unwrap()
             }
             Self::Color(..) => unreachable!(),
         }
