@@ -1,6 +1,12 @@
 use crate::{fairings::response_time::RequestTimer, state::serverstate::ServerState};
 
-fn create_server(server_state: &'static ServerState) -> rocket::Rocket<rocket::Build> {
+lazy_static::lazy_static! {
+    static ref STATE: ServerState = {
+        ServerState::new("./config/config.toml")
+    };
+}
+
+fn create_server() -> rocket::Rocket<rocket::Build> {
     rocket::build()
         .mount(
             "/",
@@ -10,15 +16,15 @@ fn create_server(server_state: &'static ServerState) -> rocket::Rocket<rocket::B
             "/template",
             routes![crate::routes::image::templates::template],
         )
-        .manage(server_state)
+        .manage(&STATE)
         .attach(RequestTimer)
 }
 
-pub fn start_server(server_state: &'static ServerState) {
-    rocket::tokio::runtime::Builder::new_multi_thread()
+pub fn start_server() {
+    tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap()
-        .block_on(async { create_server(server_state).launch().await })
+        .block_on(async { create_server().launch().await })
         .unwrap();
 }
