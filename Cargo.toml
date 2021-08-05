@@ -73,4 +73,3 @@ features = ["fs", "io-std", "io-util", "rt-multi-thread", "sync", "signal", "mac
 default = []
 redis_ratelimit = ["redis", "jsonwebtoken", "chrono"]
 cli = ["structopt", "num_cpus"]
-file_input = []

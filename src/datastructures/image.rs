@@ -28,7 +28,6 @@ pub enum ImageJson {
     },
     Color(u8, u8, u8),
     Base64(String),
-    #[cfg(feature = "file_input")]
     File(String),
 }
 
@@ -89,7 +88,6 @@ impl ImageJson {
                 Ok(format!("https://{}imgur.com/{}{}.png", subdomain, id, size))
             }
             Self::Base64(..) | Self::GithubAsset { .. } | Self::Color(..) => unreachable!(),
-            #[cfg(feature = "file_input")]
             Self::File(..) => unreachable!(),
         }
     }
@@ -111,12 +109,11 @@ impl ImageJson {
                     .await?
                     .to_vec())
             }
-            #[cfg(feature = "file_input")]
             Self::File(filename) => {
-                if !state.allow_local_file_input {
+                if !state.config.allow_local_file_input {
                     return Err(Errors::InvalidInput("Local file input is disabled.".into()));
                 }
-                state.cache.get_image(filename).await.unwrap()
+                Ok(state.cache.get_image(filename).await.unwrap().to_vec())
             }
             Self::Color(..) => unreachable!(),
         }
