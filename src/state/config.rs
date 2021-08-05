@@ -61,7 +61,7 @@ impl ServerConfig {
             "catmullrom" => FilterType::CatmullRom,
             "gaussian" => FilterType::Gaussian,
             "lanczos3" => FilterType::Lanczos3,
-            name => panic!("Invalid resize filtertype: {}", name),
+            name => panic!("Invalid resize filtertype: {:?}", name),
         };
         *(self.resize_filtertype.write().unwrap()) = Some(filtertype);
         filtertype
