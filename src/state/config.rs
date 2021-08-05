@@ -45,7 +45,7 @@ impl ServerConfig {
                 return Ok(template);
             }
         }
-        Err(Errors::InvalidImageName)
+        Err(Errors::InvalidTemplate(name))
     }
 
     pub fn resize_filtertype(&self) -> FilterType {

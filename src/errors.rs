@@ -8,7 +8,7 @@ pub enum Errors {
     JsonIo(std::io::Error),
     JsonParse(serde_json::error::Error),
     InvalidInput(String),
-    InvalidImageName,
+    InvalidTemplate(String),
 }
 
 impl Errors {
@@ -17,8 +17,11 @@ impl Errors {
             Self::JsonIo(error) => json!({"kind": "json_io", "message": error.to_string()}),
             Self::JsonParse(error) => json!({"kind": "json_parse", "message": error.to_string()}),
             Self::InvalidInput(error) => json!({"kind": "invalid_input", "message": error}),
-            Self::InvalidImageName => {
-                json!({"kind": "template_not_found", "message": "The requested image template is not found"})
+            Self::InvalidTemplate(name) => {
+                json!({
+                    "kind": "template_not_found",
+                    "message": format!("The requested image template {:?} is not found", name)
+                })
             }
         }
     }
@@ -27,7 +30,7 @@ impl Errors {
         match self {
             Self::JsonIo(..) => Status::BadRequest,
             Self::JsonParse(..) | Self::InvalidInput(..) => Status::UnprocessableEntity,
-            Self::InvalidImageName => Status::NotFound,
+            Self::InvalidTemplate(..) => Status::NotFound,
         }
     }
 }
@@ -81,7 +84,7 @@ impl std::fmt::Display for Errors {
             Self::JsonIo(error) => error.fmt(fmt),
             Self::JsonParse(error) => error.fmt(fmt),
             Self::InvalidInput(error) => write!(fmt, "{}", error),
-            Self::InvalidImageName => write!(fmt, "Invalid image name was provided"),
+            Self::InvalidTemplate(name) => write!(fmt, "Invalid template name: {:?}", name),
         }
     }
 }
