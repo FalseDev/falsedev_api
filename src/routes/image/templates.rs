@@ -5,7 +5,7 @@ use crate::{
     imagelib::image_response::ImageResponse, state::serverstate::ServerState,
 };
 
-#[post("/<name>", data = "<template_input>")]
+#[post("/template/<name>", data = "<template_input>")]
 pub async fn template(
     name: String,
     server_state: &State<&'static ServerState>,

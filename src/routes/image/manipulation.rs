@@ -41,7 +41,3 @@ image_route!("/rotate270", rotate270, rotate270);
 image_route!("/grayscale", grayscale, grayscale);
 image_route!("/invert", invert, invert, mutable);
 image_route!("/blur", blur, blur, blur_sigma);
-
-pub fn image_manipulation_routes() -> Vec<rocket::Route> {
-    return routes![flipv, fliph, rotate90, rotate180, rotate270, grayscale, invert, blur];
-}
