@@ -28,11 +28,12 @@ impl Overlay {
         &self,
         mut image: DynamicImage,
         layer: &DynamicImage,
+        state: &ServerState,
     ) -> Result<DynamicImage, Errors> {
         let layer_resized = layer.resize(
             self.resize.0,
             self.resize.1,
-            image::imageops::FilterType::Nearest,
+            state.config.resize_filtertype(),
         );
         image::imageops::overlay(&mut image, &layer_resized, self.coords.0, self.coords.1);
         Ok(image)
@@ -123,7 +124,7 @@ impl Template {
                         text_index += 1;
                     }
                     Operation::Overlay(overlay) => {
-                        img = overlay.process(img, &overlay_layers[overlay_index])?;
+                        img = overlay.process(img, &overlay_layers[overlay_index], state)?;
                         overlay_index += 1;
                     }
                 };

@@ -1,6 +1,6 @@
 use std::io::Cursor;
 
-use image::{imageops::FilterType, io::Reader, DynamicImage, GenericImageView};
+use image::{io::Reader, DynamicImage, GenericImageView};
 use rocket::serde::json::{Error as JsonError, Json};
 use serde::Deserialize;
 use tokio::task::spawn_blocking;
@@ -119,7 +119,11 @@ impl ImageJson {
         }
     }
 
-    pub async fn to_image(&self, size: u32, state: &ServerState) -> Result<DynamicImage, Errors> {
+    pub async fn to_image(
+        &self,
+        size: u32,
+        state: &'static ServerState,
+    ) -> Result<DynamicImage, Errors> {
         let mut image = match self {
             Self::Color(r, g, b) => {
                 let size = if size == 0 { 1024 } else { size };
@@ -143,9 +147,10 @@ impl ImageJson {
 
         // Resize if required
         if size != 0 && (image.width() != size || image.height() != size) {
-            image = spawn_blocking(move || image.resize(size, size, FilterType::Nearest))
-                .await
-                .unwrap();
+            image =
+                spawn_blocking(move || image.resize(size, size, state.config.resize_filtertype()))
+                    .await
+                    .unwrap();
         }
 
         Ok(image)
