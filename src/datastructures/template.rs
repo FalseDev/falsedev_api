@@ -131,8 +131,7 @@ impl Template {
             }
             Ok(img)
         })
-        .await
-        .unwrap()
+        .await?
     }
 
     pub fn validate(&self, input: &TemplateInputJson) -> Result<(), Errors> {

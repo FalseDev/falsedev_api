@@ -129,8 +129,7 @@ impl ImageJson {
                 let size = if size == 0 { 1024 } else { size };
                 let (r, g, b) = (*r, *g, *b);
                 spawn_blocking(move || DynamicImage::ImageRgb8(fill_color([r, g, b], (size, size))))
-                    .await
-                    .unwrap()
+                    .await?
             }
 
             _ => {
@@ -140,8 +139,7 @@ impl ImageJson {
                     let reader = Reader::new(Cursor::new(&bytes));
                     reader.with_guessed_format()?.decode()
                 })
-                .await
-                .unwrap()?
+                .await??
             }
         };
 
@@ -149,8 +147,7 @@ impl ImageJson {
         if size != 0 && (image.width() != size || image.height() != size) {
             image =
                 spawn_blocking(move || image.resize(size, size, state.config.resize_filtertype()))
-                    .await
-                    .unwrap();
+                    .await?;
         }
 
         Ok(image)

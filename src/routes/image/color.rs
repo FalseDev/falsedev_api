@@ -18,9 +18,7 @@ pub async fn color(
 ) -> Result<ImageResponse, Errors> {
     let size = state.config.colorfill_image_size;
     let color = [r, g, b];
-    let img = spawn_blocking(move || fill_color(color, (size, size)))
-        .await
-        .unwrap();
+    let img = spawn_blocking(move || fill_color(color, (size, size))).await?;
     ImageResponse(DynamicImage::ImageRgb8(img)).ok()
 }
 
@@ -48,7 +46,6 @@ pub async fn blend(
         }
         image
     })
-    .await
-    .unwrap();
+    .await?;
     ImageResponse(DynamicImage::ImageRgb8(image)).ok()
 }

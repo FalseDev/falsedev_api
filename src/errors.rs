@@ -9,6 +9,7 @@ pub enum Errors {
     JsonParse(serde_json::error::Error),
     InvalidInput(String),
     InvalidTemplate(String),
+    InternalError(Box<dyn std::error::Error + Send>),
 }
 
 impl Errors {
@@ -23,6 +24,9 @@ impl Errors {
                     "message": format!("The requested image template {:?} is not found", name)
                 })
             }
+            Self::InternalError(_) => {
+                json!({"kind": "internal_error", "message": "An unknown internal error occurred."})
+            }
         }
     }
 
@@ -31,6 +35,7 @@ impl Errors {
             Self::JsonIo(..) => Status::BadRequest,
             Self::JsonParse(..) | Self::InvalidInput(..) => Status::UnprocessableEntity,
             Self::InvalidTemplate(..) => Status::NotFound,
+            Self::InternalError(..) => Status::InternalServerError,
         }
     }
 }
@@ -74,7 +79,13 @@ impl From<std::io::Error> for Errors {
 #[cfg(feature = "redis_ratelimit")]
 impl From<redis::RedisError> for Errors {
     fn from(error: redis::RedisError) -> Self {
-        Self::InvalidInput(error.to_string())
+        Self::InternalError(Box::new(error))
+    }
+}
+
+impl From<tokio::task::JoinError> for Errors {
+    fn from(error: tokio::task::JoinError) -> Self {
+        Self::InternalError(Box::new(error))
     }
 }
 
@@ -85,6 +96,7 @@ impl std::fmt::Display for Errors {
             Self::JsonParse(error) => error.fmt(fmt),
             Self::InvalidInput(error) => write!(fmt, "{}", error),
             Self::InvalidTemplate(name) => write!(fmt, "Invalid template name: {:?}", name),
+            Self::InternalError(error) => error.fmt(fmt),
         }
     }
 }
