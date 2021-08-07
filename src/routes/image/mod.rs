@@ -1,6 +1,7 @@
-pub mod color;
-pub mod manipulation;
-pub mod templates;
+mod color;
+mod manipulation;
+mod merge;
+mod templates;
 
 pub fn routes() -> Vec<rocket::Route> {
     routes![
@@ -14,6 +15,7 @@ pub fn routes() -> Vec<rocket::Route> {
         manipulation::blur,
         color::color,
         color::blend,
+        merge::merge,
         templates::template,
     ]
 }
