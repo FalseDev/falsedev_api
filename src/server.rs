@@ -1,3 +1,5 @@
+use rocket::{shield::Shield, Build, Rocket};
+
 use crate::{fairings::response_time::RequestTimer, state::serverstate::ServerState};
 
 lazy_static::lazy_static! {
@@ -6,11 +8,12 @@ lazy_static::lazy_static! {
     };
 }
 
-fn create_server() -> rocket::Rocket<rocket::Build> {
+fn create_server() -> Rocket<Build> {
     let state: &ServerState = &STATE;
     rocket::build()
         .mount("/", crate::routes::image::routes())
         .manage(state)
+        .attach(Shield::new())
         .attach(RequestTimer)
 }
 
